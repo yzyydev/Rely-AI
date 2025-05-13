@@ -4,13 +4,13 @@
     1. Net Return on Investment (Comparison between the loan interest cost and the expected resale profit) 
     2. Liquidity Management (Ability to cover short-term obligations while capital is tied up in the asset) 
     3. Market Risk (Certainty and timing of achieving the projected 20% selling price premium) 
-    4. Transaction & Holding Costs (Fees, taxes, insurance, and potential depreciation during holding period) 
+    4. Transaction &amp; Holding Costs (Fees, taxes, insurance, and potential depreciation during holding period) 
     5. Opportunity Cost (Potential returns from alternative investments or use of capital) 
-    6. Bank Loan Terms & Repayment Flexibility (Early repayment penalties, collateral requirements, default risk) 
+    6. Bank Loan Terms &amp; Repayment Flexibility (Early repayment penalties, collateral requirements, default risk) 
 </factors>
 <models>
-    <model name="o4-mini:high" />
-    <model name="claude-3-7-sonnet:4k" ceo="true" />
+    <model name="gpt-4o" />
+    <model name="claude-3-5-sonnet-20240620" ceo="true" />
 </models>
 <decision-resources>
 Ferrari F80 Base Price: $1,200,000

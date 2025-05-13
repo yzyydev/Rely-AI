@@ -7,11 +7,15 @@ import json
 import os
 import sys
 from pathlib import Path
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Check if API keys are set
 if not os.environ.get("OPENAI_API_KEY") or not os.environ.get("ANTHROPIC_API_KEY"):
-    print("Error: OPENAI_API_KEY and ANTHROPIC_API_KEY environment variables must be set.")
-    print("Run: export OPENAI_API_KEY=sk-... ANTHROPIC_API_KEY=sk-...")
+    print("Error: OPENAI_API_KEY and ANTHROPIC_API_KEY environment variables must be set in the .env file.")
+    print("Make sure your .env file contains:\nOPENAI_API_KEY=sk-...\nANTHROPIC_API_KEY=sk-...")
     sys.exit(1)
 
 # Read the sample XML
