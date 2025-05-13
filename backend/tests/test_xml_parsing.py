@@ -12,10 +12,11 @@ def test_parse_xml_with_suffixed_models():
         2. Cash Flow Management 
         3. Future Resale Value
     </factors>
-    <models>
+    <board-models>
         <model name="o4-mini:medium" />
-        <model name="claude-3-7-sonnet:2k" ceo="true" />
-    </models>
+        <model name="gpt-4o" />
+    </board-models>
+    <ceo-model name="claude-3-7-sonnet:2k" />
     <decision-resources>
     Computer Price: $5,000
     Current Budget: $10,000
@@ -26,7 +27,7 @@ def test_parse_xml_with_suffixed_models():
     </root>"""
     
     # Parse the XML
-    purpose, factors, resources, models, ceo_model = parse_xml_input(xml_content)
+    purpose, factors, resources, board_models, ceo_model = parse_xml_input(xml_content)
     
     # Check that purpose was extracted
     assert "purchasing a high-end computer" in purpose
@@ -37,8 +38,8 @@ def test_parse_xml_with_suffixed_models():
     assert "Future Resale Value" in factors
     
     # Check that models with suffixes were extracted correctly
-    assert "o4-mini:medium" in models
-    assert "claude-3-7-sonnet:2k" in models
+    assert "o4-mini:medium" in board_models
+    assert "gpt-4o" in board_models
     
     # Check that CEO model was identified
     assert ceo_model == "claude-3-7-sonnet:2k"
@@ -46,16 +47,18 @@ def test_parse_xml_with_suffixed_models():
     # Check resources
     assert "Computer Price: $5,000" in resources
 
+
 def test_parse_xml_missing_models():
-    """Test that an error is raised when models are missing"""
+    """Test that an error is raised when board-models are missing"""
     xml_content = """<root>
     <purpose>Test purpose</purpose>
     <factors>Test factors</factors>
+    <ceo-model name="claude-3-7-sonnet:2k" />
     <decision-resources>Test resources</decision-resources>
     </root>"""
     
-    # Parsing should raise a ValueError due to missing models
-    with pytest.raises(ValueError, match="No models specified"):
+    # Parsing should raise a ValueError due to missing board-models
+    with pytest.raises(ValueError, match="Missing required <board-models>"):
         parse_xml_input(xml_content)
 
 def test_parse_xml_malformed():
@@ -63,7 +66,7 @@ def test_parse_xml_malformed():
     xml_content = """
     <purpose>Test purpose</purpose>
     <factors>Test factors</factors
-    <models><model name="test-model" /></models>
+    <board-models><model name="test-model" /></board-models>
     <decision-resources>Test resources</decision-resources>
     """
     
@@ -76,15 +79,16 @@ def test_parse_xml_no_ceo():
     xml_content = """<root>
     <purpose>Test purpose</purpose>
     <factors>Test factors</factors>
-    <models>
+    <board-models>
         <model name="o4-mini:medium" />
-        <model name="claude-3-7-sonnet:2k" />
-    </models>
+        <model name="gpt-4o" />
+    </board-models>
     <decision-resources>Test resources</decision-resources>
     </root>"""
     
     # Parse the XML
-    purpose, factors, resources, models, ceo_model = parse_xml_input(xml_content)
+    purpose, factors, resources, board_models, ceo_model = parse_xml_input(xml_content)
     
     # No CEO model should be identified
     assert ceo_model is None
+    

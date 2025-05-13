@@ -1,7 +1,8 @@
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, AsyncMock
 import sys
 import os
+import asyncio
 
 # Add path for atoms package
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -14,6 +15,7 @@ except ImportError:
     PROVIDERS_AVAILABLE = False
 
 from app.utils import parse_model_name, validate_model_name
+from app.service import generate_board_decisions, generate_ceo_decision, call_model, process_board_responses
 
 @pytest.mark.skipif(not PROVIDERS_AVAILABLE, reason="LLM providers not available")
 def test_openai_parse_reasoning_suffix():
@@ -108,3 +110,68 @@ def test_utils_validate_model_name():
     
     # Invalid models
     assert not validate_model_name("invalid-model")
+
+@pytest.mark.asyncio
+async def test_call_model_with_roles():
+    """Test that the call_model function passes the correct system prompts based on role"""
+    with patch('app.service.openai.prompt', return_value="Test response") as mock_openai_prompt:
+        # Test board member role
+        await call_model("gpt-4o", "Test prompt", is_ceo=False)
+        # Check that the first argument contains the board member system prompt
+        args = mock_openai_prompt.call_args[0]
+        assert "You are a board member providing a detailed analysis" in args[0]
+        
+        # Reset the mock for the CEO test
+        mock_openai_prompt.reset_mock()
+        
+        # Test CEO role
+        await call_model("gpt-4o", "Test prompt", is_ceo=True)
+        # Check that the first argument contains the CEO system prompt
+        args = mock_openai_prompt.call_args[0]
+        assert "You are the CEO making a final decision" in args[0]
+
+@pytest.mark.asyncio
+async def test_generate_board_decisions():
+    """Test that generate_board_decisions correctly calls process_board_responses"""
+    with patch('app.service.process_board_responses', new_callable=AsyncMock) as mock_process:
+        mock_process.return_value = [
+            {"model_name": "model1", "response": "Board response 1"},
+            {"model_name": "model2", "response": "Board response 2"}
+        ]
+        
+        result = await generate_board_decisions(
+            board_models=["model1", "model2"],
+            purpose="Test purpose",
+            factors="Test factors",
+            resources="Test resources"
+        )
+        
+        # Check that the function was called with the correct parameters
+        mock_process.assert_called_once()
+        assert len(result) == 2
+        assert result[0]["model_name"] == "model1"
+        assert result[1]["model_name"] == "model2"
+
+@pytest.mark.asyncio
+async def test_generate_ceo_decision():
+    """Test that generate_ceo_decision correctly calls call_model_with_retry"""
+    with patch('app.service.call_model_with_retry', new_callable=AsyncMock) as mock_call:
+        mock_call.return_value = "CEO decision"
+        
+        board_responses = [
+            {"model_name": "model1", "response": "Board response 1"},
+            {"model_name": "model2", "response": "Board response 2"}
+        ]
+        
+        result = await generate_ceo_decision(
+            ceo_model="ceo-model",
+            purpose="Test purpose",
+            factors="Test factors",
+            board_responses=board_responses
+        )
+        
+        # Check that the function was called with the correct parameters
+        mock_call.assert_called_once()
+        assert mock_call.call_args[0][0] == "ceo-model"  # ceo_model
+        assert mock_call.call_args[1]["is_ceo"] is True  # is_ceo parameter
+        assert result == "CEO decision"

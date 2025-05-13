@@ -17,43 +17,61 @@ class Settings(BaseSettings):
     Application settings loaded from environment variables
     """
     # API Keys
-    openai_api_key: Optional[str] = os.getenv("OPENAI_API_KEY")
-    anthropic_api_key: Optional[str] = os.getenv("ANTHROPIC_API_KEY")
+    openai_api_key: Optional[str] = None
+    anthropic_api_key: Optional[str] = None
     
     # Paths
-    output_dir: str = os.getenv("OUTPUT_DIR", "/Users/yzyy/Projects/rely_ai/backend/output")
+    output_dir: str = "/Users/yzyy/Projects/rely_ai/backend/output"
     
     # LLM configuration
-    default_ceo_model: str = os.getenv("DEFAULT_CEO_MODEL", "gpt-4o")
+    default_ceo_model: str = "gpt-4o"
     
     # HTTP client configuration
-    http_timeout: int = int(os.getenv("HTTP_TIMEOUT", "120"))  # seconds
-    max_retries: int = int(os.getenv("MAX_RETRIES", "3"))
+    http_timeout: int = 120  # seconds
+    max_retries: int = 3
     
     # Server configuration
-    host: str = os.getenv("HOST", "0.0.0.0")
-    port: int = int(os.getenv("PORT", "8000"))
+    host: str = "0.0.0.0"
+    port: int = 8000
     
     # API configuration
     api_prefix: str = "/api/v1"
     
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
+    model_config = {
+        "env_file": ".env",
+        "env_file_encoding": "utf-8",
+        "extra": "ignore"  # This will ignore extra fields in the environment
+    }
     
     def validate(self):
         """
         Validate the configuration
         """
+        # Try to load API keys from environment if not set
+        if not self.openai_api_key:
+            self.openai_api_key = os.getenv("OPENAI_API_KEY")
+            
+        if not self.anthropic_api_key:
+            self.anthropic_api_key = os.getenv("ANTHROPIC_API_KEY")
+            
         # Create output directory if it doesn't exist
         Path(self.output_dir).mkdir(parents=True, exist_ok=True)
         
-        # Check API keys
+        # Check API keys and warn if still not set
         if not self.openai_api_key:
             logger.warning("OPENAI_API_KEY is not set. OpenAI models will not be available.")
         
         if not self.anthropic_api_key:
             logger.warning("ANTHROPIC_API_KEY is not set. Anthropic models will not be available.")
+            
+        # Additionally attempt to load other environment variables
+        env_output_dir = os.getenv("OUTPUT_DIR")
+        if env_output_dir:
+            self.output_dir = env_output_dir
+            
+        env_ceo_model = os.getenv("DEFAULT_CEO_MODEL")
+        if env_ceo_model:
+            self.default_ceo_model = env_ceo_model
             
         return self
 

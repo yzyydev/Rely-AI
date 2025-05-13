@@ -6,7 +6,7 @@ from typing import List, Dict, Any, Optional
 from fastapi import HTTPException
 
 from app.config import settings
-from app.utils import validate_model_name
+from app.utils import validate_model_name, construct_board_prompt, construct_ceo_prompt
 
 # Import LLM providers
 try:
@@ -23,13 +23,14 @@ class ModelCallRetryError(Exception):
     """Exception raised when a model call fails after all retries"""
     pass
 
-async def call_model_with_retry(model_name: str, prompt: str, max_retries: int = None) -> str:
+async def call_model_with_retry(model_name: str, prompt: str, is_ceo: bool = False, max_retries: int = None) -> str:
     """
     Call an LLM model with the given prompt, with retry logic
     
     Args:
         model_name: Name of the model to call
         prompt: XML prompt to send to the model
+        is_ceo: Whether this model is being used as the CEO model
         max_retries: Maximum number of retries (defaults to settings.max_retries)
         
     Returns:
@@ -54,7 +55,7 @@ async def call_model_with_retry(model_name: str, prompt: str, max_retries: int =
     
     while retry_count <= max_retries:
         try:
-            return await call_model(model_name, prompt)
+            return await call_model(model_name, prompt, is_ceo)
         except Exception as e:
             last_error = e
             retry_count += 1
@@ -75,13 +76,14 @@ async def call_model_with_retry(model_name: str, prompt: str, max_retries: int =
     logger.error(error_msg)
     raise ModelCallRetryError(error_msg)
 
-async def call_model(model_name: str, prompt: str) -> str:
+async def call_model(model_name: str, prompt: str, is_ceo: bool = False) -> str:
     """
     Call an LLM model with the given prompt.
     
     Args:
         model_name: Name of the model to call (e.g., "gpt-4o", "claude-3.5-sonnet")
         prompt: XML prompt to send to the model
+        is_ceo: Whether this model is being used as the CEO model (affects system prompt)
         
     Returns:
         Model response text
@@ -90,18 +92,22 @@ async def call_model(model_name: str, prompt: str) -> str:
         ValueError: If API keys are not set or model is unsupported
         HTTPException: If API call fails
     """
-    logger.info(f"Calling model: {model_name}")
+    logger.info(f"Calling model: {model_name}" + (" as CEO" if is_ceo else " as board member"))
     
     if not LLM_PROVIDERS_AVAILABLE:
         raise ValueError("LLM providers not available. Make sure the atoms package is installed.")
     
     try:
+        # Set the appropriate system prompt based on role
+        if is_ceo:
+            system_prompt = "You are the CEO making a final decision based on board member recommendations."
+        else:
+            system_prompt = "You are a board member providing a detailed analysis."
+            
         # Use OpenAI provider for gpt-*, o3*, o4* models
         if model_name.startswith(("gpt-", "o3", "o4")):
             logger.info(f"Using OpenAI provider for model: {model_name}")
             
-            # Add board member system prompt
-            system_prompt = "You are a board member providing a detailed analysis."
             full_prompt = f"{system_prompt}\n\n{prompt}"
             
             # Call OpenAI provider synchronously - converting to async pattern
@@ -112,8 +118,6 @@ async def call_model(model_name: str, prompt: str) -> str:
         elif model_name.startswith("claude-"):
             logger.info(f"Using Anthropic provider for model: {model_name}")
             
-            # Add board member system prompt
-            system_prompt = "You are a board member providing a detailed analysis."
             full_prompt = f"{system_prompt}\n\n{prompt}"
             
             # Call Anthropic provider synchronously - converting to async pattern
@@ -138,7 +142,7 @@ async def process_board_responses(models: List[str], board_prompt: str) -> List[
         List of model responses
     """
     # Fan-out: Make parallel LLM calls to all board models
-    board_tasks = [call_model_with_retry(model, board_prompt) for model in models]
+    board_tasks = [call_model_with_retry(model, board_prompt, is_ceo=False) for model in models]
     
     try:
         board_results = await asyncio.gather(*board_tasks)
@@ -155,6 +159,46 @@ async def process_board_responses(models: List[str], board_prompt: str) -> List[
         })
     
     return formatted_results
+
+async def generate_board_decisions(board_models: List[str], purpose: str, factors: str, resources: str) -> List[Dict[str, str]]:
+    """
+    Generate board decisions by calling all board models in parallel.
+    
+    Args:
+        board_models: List of model names to use as board members
+        purpose: The purpose text
+        factors: The factors text
+        resources: The decision resources text
+        
+    Returns:
+        List of board model responses
+    """
+    # Construct board prompt
+    board_prompt = construct_board_prompt(purpose, factors, resources)
+    
+    # Process board responses in parallel
+    logger.info(f"Generating decisions from {len(board_models)} board models")
+    return await process_board_responses(board_models, board_prompt)
+
+async def generate_ceo_decision(ceo_model: str, purpose: str, factors: str, board_responses: List[Dict[str, str]]) -> str:
+    """
+    Generate CEO decision based on board responses.
+    
+    Args:
+        ceo_model: The model to use as CEO
+        purpose: The purpose text
+        factors: The factors text
+        board_responses: List of board model responses
+        
+    Returns:
+        CEO decision text
+    """
+    # Construct CEO prompt
+    ceo_prompt = construct_ceo_prompt(purpose, factors, board_responses)
+    
+    # Call CEO model with retry
+    logger.info(f"Generating CEO decision using {ceo_model}")
+    return await call_model_with_retry(ceo_model, ceo_prompt, is_ceo=True)
 
 def list_available_models() -> Dict[str, List[str]]:
     """
