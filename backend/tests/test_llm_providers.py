@@ -9,7 +9,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 # Try importing LLM providers directly
 try:
-    from atoms.llm_providers import openai, anthropic
+    from atoms.llm_providers import openai, anthropic, gemini
     PROVIDERS_AVAILABLE = True
 except ImportError:
     PROVIDERS_AVAILABLE = False
@@ -48,6 +48,19 @@ def test_anthropic_parse_thinking_suffix():
     assert base == "claude-3-7-sonnet-20250219"
     assert budget == 2000
 
+@pytest.mark.skipif(not PROVIDERS_AVAILABLE, reason="LLM providers not available")
+def test_gemini_parse_thinking_suffix():
+    """Test parsing thinking suffixes for Gemini models"""
+    # Valid thinking model + k suffix
+    base, budget = gemini.parse_thinking_suffix("gemini-2.0-flash:4k")
+    assert base == "gemini-2.0-flash"
+    assert budget == 4096  # 4k = 4 * 1024
+    
+    # Valid thinking model + numeric suffix
+    base, budget = gemini.parse_thinking_suffix("gemini-1.5-pro:2000")
+    assert base == "gemini-1.5-pro"
+    assert budget == 2000
+
 
 @pytest.mark.skipif(not PROVIDERS_AVAILABLE, reason="LLM providers not available")
 def test_list_models():
@@ -72,6 +85,13 @@ def test_list_models():
         # Test Anthropic model listing
         anthropic_models = anthropic.list_models()
         assert "claude-3-7-sonnet" in anthropic_models
+        
+        # For Gemini, we'll just call the function which already has a fallback to hardcoded models
+        # This avoids complex mocking of the client.list_models method
+        gemini_models = gemini.list_models()
+        assert len(gemini_models) > 0
+        # Check if one of the hardcoded models is in the list
+        assert any(model.startswith("gemini-") for model in gemini_models)
 
 def test_utils_parse_model_name():
     """Test parsing model names in utils module"""
@@ -85,6 +105,12 @@ def test_utils_parse_model_name():
     provider, base, suffix = parse_model_name("claude-3-7-sonnet:4k")
     assert provider == "anthropic"
     assert base == "claude-3-7-sonnet"
+    assert suffix == "4k"
+    
+    # Gemini models
+    provider, base, suffix = parse_model_name("gemini-1.5-pro:4k")
+    assert provider == "gemini"
+    assert base == "gemini-1.5-pro"
     assert suffix == "4k"
     
     # No suffix
@@ -107,6 +133,10 @@ def test_utils_validate_model_name():
     
     # Valid Anthropic models
     assert validate_model_name("claude-3-7-sonnet:4k")
+    
+    # Valid Gemini models
+    assert validate_model_name("gemini-1.5-pro")
+    assert validate_model_name("gemini-2.0-flash:4k")
     
     # Invalid models
     assert not validate_model_name("invalid-model")

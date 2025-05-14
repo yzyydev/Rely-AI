@@ -43,15 +43,28 @@ cd backend
 pip install -r requirements.txt
 ```
 
-3. Set the required environment variables:
+3. Install the project in development mode (to make the `atoms` package importable):
+
+```bash
+pip install -e .
+```
+
+Alternatively, you can set the `PYTHONPATH` environment variable:
+
+```bash
+export PYTHONPATH=$PYTHONPATH:/path/to/rely_ai/backend
+```
+
+4. Set the required environment variables:
 
 ```bash
 export OPENAI_API_KEY=sk-...
 export ANTHROPIC_API_KEY=sk-...
+export GEMINI_API_KEY=sk-...
 export OUTPUT_DIR=/path/to/output  # Optional, defaults to /backend/output
 ```
 
-4. Check if providers are correctly installed:
+5. Check if providers are correctly installed:
 
 ```bash
 ./check_providers.py

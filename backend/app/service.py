@@ -2,19 +2,23 @@ import asyncio
 import logging
 import random
 import sys
+import os
 from typing import List, Dict, Any, Optional
 from fastapi import HTTPException
+
+# Add the parent directory to the path
+sys.path.insert(0, os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
 
 from app.config import settings
 from app.utils import validate_model_name, construct_board_prompt, construct_ceo_prompt
 
 # Import LLM providers
 try:
-    from atoms.llm_providers import openai, anthropic
+    from atoms.llm_providers import openai, anthropic, gemini
     LLM_PROVIDERS_AVAILABLE = True
-except ImportError:
+except ImportError as e:
     LLM_PROVIDERS_AVAILABLE = False
-    logging.getLogger(__name__).error("LLM providers not available. Make sure the atoms package is installed.")
+    logging.getLogger(__name__).error(f"LLM providers not available. Make sure the atoms package is installed. Error: {e}")
 
 # Setup logging
 logger = logging.getLogger(__name__)
@@ -81,7 +85,7 @@ async def call_model(model_name: str, prompt: str, is_ceo: bool = False) -> str:
     Call an LLM model with the given prompt.
     
     Args:
-        model_name: Name of the model to call (e.g., "gpt-4o", "claude-3.5-sonnet")
+        model_name: Name of the model to call (e.g., "gpt-4o", "claude-3.5-sonnet", "gemini-1.5-pro")
         prompt: XML prompt to send to the model
         is_ceo: Whether this model is being used as the CEO model (affects system prompt)
         
@@ -122,6 +126,16 @@ async def call_model(model_name: str, prompt: str, is_ceo: bool = False) -> str:
             
             # Call Anthropic provider synchronously - converting to async pattern
             result = await asyncio.to_thread(anthropic.prompt, full_prompt, model_name)
+            return result
+            
+        # Use Gemini provider for gemini-* models
+        elif model_name.startswith("gemini-"):
+            logger.info(f"Using Gemini provider for model: {model_name}")
+            
+            full_prompt = f"{system_prompt}\n\n{prompt}"
+            
+            # Call Gemini provider synchronously - converting to async pattern
+            result = await asyncio.to_thread(gemini.prompt, full_prompt, model_name)
             return result
         else:
             raise ValueError(f"Unsupported model: {model_name}")
@@ -209,16 +223,18 @@ def list_available_models() -> Dict[str, List[str]]:
     """
     if not LLM_PROVIDERS_AVAILABLE:
         logger.warning("LLM providers not available. Returning empty model list.")
-        return {"openai": [], "anthropic": []}
+        return {"openai": [], "anthropic": [], "gemini": []}
     
     try:
         openai_models = openai.list_models()
         anthropic_models = anthropic.list_models()
+        gemini_models = gemini.list_models()
         
         return {
             "openai": openai_models,
-            "anthropic": anthropic_models
+            "anthropic": anthropic_models,
+            "gemini": gemini_models
         }
     except Exception as e:
         logger.error(f"Error listing available models: {str(e)}")
-        return {"openai": [], "anthropic": []}
+        return {"openai": [], "anthropic": [], "gemini": []}

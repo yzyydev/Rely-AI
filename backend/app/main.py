@@ -1,8 +1,13 @@
 import uuid
 import logging
+import sys
+import os
 from pathlib import Path
 from typing import Dict, Optional, List
 import xml.etree.ElementTree as ET
+
+# Add the parent directory to the Python path so that atoms can be imported
+sys.path.insert(0, os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
 
 from fastapi import FastAPI, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware

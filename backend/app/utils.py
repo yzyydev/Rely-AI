@@ -110,6 +110,7 @@ def validate_model_name(model_name: str) -> bool:
     # The new provider structure supports more flexible model naming
     # OpenAI models include gpt-*, o3*, o4* with or without reasoning suffix (:low, :medium, :high)
     # Anthropic models include claude-* with or without thinking suffix (:1k, :4k, :16k or specific numbers)
+    # Gemini models include gemini-* with or without thinking suffix (:1k, :4k, etc.)
     
     # Check for OpenAI models
     if model_name.startswith(("gpt-", "o3", "o4")):
@@ -119,6 +120,12 @@ def validate_model_name(model_name: str) -> bool:
     
     # Check for Anthropic models
     if model_name.startswith("claude-"):
+        # Strip any thinking suffix if present
+        base_model = model_name.split(":")[0]
+        return True
+    
+    # Check for Gemini models
+    if model_name.startswith("gemini-"):
         # Strip any thinking suffix if present
         base_model = model_name.split(":")[0]
         return True
@@ -226,11 +233,11 @@ def parse_model_name(model_name: str) -> Tuple[str, Optional[str], Optional[str]
     Parse a model name to extract provider, base name, and any suffix
     
     Args:
-        model_name: Full model name with optional suffix (e.g., gpt-4o, claude-3.5-sonnet:4k)
+        model_name: Full model name with optional suffix (e.g., gpt-4o, claude-3.5-sonnet:4k, gemini-1.5-pro:4k)
         
     Returns:
         Tuple of (provider, base_model, suffix)
-        provider: 'openai' or 'anthropic'
+        provider: 'openai', 'anthropic', or 'gemini'
         base_model: The base model name without suffix
         suffix: Any suffix (:low, :medium, :high, :1k, :4k, etc.) or None
     """
@@ -244,6 +251,8 @@ def parse_model_name(model_name: str) -> Tuple[str, Optional[str], Optional[str]
         provider = "openai"
     elif base_name.startswith("claude-"):
         provider = "anthropic"
+    elif base_name.startswith("gemini-"):
+        provider = "gemini"
     else:
         provider = None
         

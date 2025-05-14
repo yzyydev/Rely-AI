@@ -6,3 +6,4 @@ pydantic==2.11.4
 python-dotenv==1.1.0
 openai==1.78.1
 anthropic==0.51.0
+google-genai==1.15.0

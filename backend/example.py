@@ -19,9 +19,9 @@ def main():
     args = parser.parse_args()
 
     # Check if API keys are set
-    if not os.environ.get("OPENAI_API_KEY") or not os.environ.get("ANTHROPIC_API_KEY"):
-        print("Error: OPENAI_API_KEY and ANTHROPIC_API_KEY environment variables must be set in the .env file.")
-        print("Make sure your .env file contains:\nOPENAI_API_KEY=sk-...\nANTHROPIC_API_KEY=sk-...")
+    if not os.environ.get("OPENAI_API_KEY") or not os.environ.get("ANTHROPIC_API_KEY") or not os.environ.get("GEMINI_API_KEY"):
+        print("Error: OPENAI_API_KEY, ANTHROPIC_API_KEY, and GEMINI_API_KEY environment variables must be set in the .env file.")
+        print("Make sure your .env file contains:\nOPENAI_API_KEY=sk-...\nANTHROPIC_API_KEY=sk-...\nGEMINI_API_KEY=...")
         sys.exit(1)
 
     # Read the sample XML
