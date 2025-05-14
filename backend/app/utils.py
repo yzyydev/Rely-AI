@@ -54,7 +54,7 @@ def parse_xml_input(xml_content: str) -> Tuple[str, str, str, List[str], Optiona
         board_models = []
         ceo_model = None
         
-        # Parse board models
+        # Parse board models - try both new format (board-models) and legacy format (models)
         board_models_elem = elements.find('board-models')
         if board_models_elem is not None:
             for model_elem in board_models_elem.findall('model'):
@@ -62,7 +62,22 @@ def parse_xml_input(xml_content: str) -> Tuple[str, str, str, List[str], Optiona
                 if model_name:
                     board_models.append(model_name)
         else:
-            raise ValueError("Missing required <board-models> element in XML")
+            # Try legacy format with <models> element
+            models_elem = elements.find('models')
+            if models_elem is not None:
+                ceo_attr_model = None
+                for model_elem in models_elem.findall('model'):
+                    model_name = model_elem.get('name')
+                    if model_name:
+                        board_models.append(model_name)
+                        # Check if this model has ceo="true" attribute
+                        if model_elem.get('ceo') == "true" and ceo_model is None:
+                            ceo_attr_model = model_name
+                # If we found a model with ceo="true", set it as the CEO model
+                if ceo_attr_model is not None:
+                    ceo_model = ceo_attr_model
+            else:
+                raise ValueError("Missing required <board-models> or <models> element in XML")
         
         # Parse CEO model
         ceo_model_elem = elements.find('ceo-model')
