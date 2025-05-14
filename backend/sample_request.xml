@@ -19,8 +19,9 @@
     <model name="gpt-4o" />
     <model name="o4-mini:high" />
     <model name="claude-3-7-sonnet-20250219" />
+    <model name="gemini-2.0-flash" />
 </board-models>
-<ceo-model name="o3:high" />
+<ceo-model name="gemini-1.5-pro" />
 <decision-resources>
     1. **IT Capabilities &amp; Cost Assessment (Internal Report)**  
        Detailed analysis of existing CRM customizations, team skill-sets, estimated development timeline, and 5-year cost projections for an in-house rebuild.  

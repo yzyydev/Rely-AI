@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     # API Keys
     openai_api_key: Optional[str] = None
     anthropic_api_key: Optional[str] = None
+    gemini_api_key: Optional[str] = None
     
     # Paths
     output_dir: str = "/Users/yzyy/Projects/rely_ai/backend/output"
@@ -54,6 +55,9 @@ class Settings(BaseSettings):
         if not self.anthropic_api_key:
             self.anthropic_api_key = os.getenv("ANTHROPIC_API_KEY")
             
+        if not self.gemini_api_key:
+            self.gemini_api_key = os.getenv("GEMINI_API_KEY")
+            
         # Create output directory if it doesn't exist
         Path(self.output_dir).mkdir(parents=True, exist_ok=True)
         
@@ -63,6 +67,9 @@ class Settings(BaseSettings):
         
         if not self.anthropic_api_key:
             logger.warning("ANTHROPIC_API_KEY is not set. Anthropic models will not be available.")
+            
+        if not self.gemini_api_key:
+            logger.warning("GEMINI_API_KEY is not set. Gemini models will not be available.")
             
         # Additionally attempt to load other environment variables
         env_output_dir = os.getenv("OUTPUT_DIR")
