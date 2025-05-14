@@ -18,7 +18,7 @@ from app.utils import (
     construct_ceo_prompt, 
     ensure_output_directory
 )
-from app.service import call_model, process_board_responses
+from app.service import call_model, process_board_responses, generate_board_decisions, generate_ceo_decision
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -121,7 +121,7 @@ async def decide(request: DecideRequest):
         
         # Parse XML input
         try:
-            purpose, factors, resources, models, ceo_model = parse_xml_input(request.prompt)
+            purpose, factors, resources, board_models, ceo_model = parse_xml_input(request.prompt)
         except ET.ParseError as e:
             # Handle XML parsing errors explicitly
             logger.error(f"XML parsing error: {str(e)}")
@@ -137,15 +137,15 @@ async def decide(request: DecideRequest):
             logger.info(f"Using default CEO model: {ceo_model}")
         
         # Create decision status
-        decision = DecisionStatus(id=decision_id, purpose=purpose, models=models)
+        decision = DecisionStatus(id=decision_id, purpose=purpose, models=board_models)
         DECISIONS[decision_id] = decision
         
-        # Construct board prompt
-        board_prompt = construct_board_prompt(purpose, factors, resources)
+        # Create output directory
+        output_dir = ensure_output_directory(settings.output_dir, decision_id)
         
-        # Fan-out: Process board responses in parallel
-        logger.info(f"Starting parallel model calls for {len(models)} board models")
-        board_responses = await process_board_responses(models, board_prompt)
+        # Stage 1: Fan-out - Generate board decisions in parallel
+        logger.info(f"Starting parallel model calls for {len(board_models)} board models")
+        board_responses = await generate_board_decisions(board_models, purpose, factors, resources)
         logger.info(f"Completed all board model calls")
         
         # Store board responses
@@ -156,7 +156,7 @@ async def decide(request: DecideRequest):
             model_response = response["response"]
             
             # Save board response to file
-            board_file_path = decision.output_dir / f"board_{model_name}.md"
+            board_file_path = output_dir / f"board_{model_name}.md"
             with open(board_file_path, "w") as f:
                 f.write(model_response)
                 
@@ -172,21 +172,21 @@ async def decide(request: DecideRequest):
             
             logger.info(f"Saved board response for {model_name}")
         
-        # Fan-in: Make CEO decision call with board responses
-        logger.info(f"Constructing CEO prompt with {len(board_responses)} board responses")
+        # Stage 2: Fan-in - Generate CEO decision
+        logger.info(f"Generating CEO decision with {len(board_responses)} board responses")
         ceo_prompt = construct_ceo_prompt(purpose, factors, board_responses)
         
         # Save CEO prompt to file
-        ceo_prompt_path = decision.output_dir / "ceo_prompt.xml"
+        ceo_prompt_path = output_dir / "ceo_prompt.xml"
         with open(ceo_prompt_path, "w") as f:
             f.write(ceo_prompt)
         
-        # Call CEO model
+        # Stage 3: Call CEO model
         logger.info(f"Calling CEO model: {ceo_model}")
-        ceo_decision = await call_model(ceo_model, ceo_prompt)
+        ceo_decision = await generate_ceo_decision(ceo_model, purpose, factors, board_responses)
         
         # Save CEO decision to file
-        ceo_decision_path = decision.output_dir / "ceo_decision.md"
+        ceo_decision_path = output_dir / "ceo_decision.md"
         with open(ceo_decision_path, "w") as f:
             f.write(ceo_decision)
         

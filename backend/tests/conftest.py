@@ -82,10 +82,11 @@ def sample_xml_payload():
         1. Factor 1
         2. Factor 2
     </factors>
-    <models>
+    <board-models>
         <model name="gpt-4o" />
-        <model name="claude-3-7-sonnet" />
-    </models>
+        <model name="o4-mini:high" />
+    </board-models>
+    <ceo-model name="claude-3-7-sonnet" />
     <decision-resources>
         Some test resources
     </decision-resources>

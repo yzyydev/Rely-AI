@@ -1,28 +1,30 @@
 <root>
-<purpose>I want to rigorously evaluate whether purchasing a Ferrari F80 under current liquidity constraints, using a bank loan at a 3% yield, is a sound financial decision, considering the potential to resell the vehicle at a 20% premium. Here are the top factors I'm considering:</purpose>
+<purpose>I want to rigorously evaluate and compare the strategic trade-offs between developing a custom, in-house CRM versus deploying a SaaS CRM platform—focusing on speed, functionality, cost, and long-term agility—to recommend the best path for sustaining RetailCo&#39;s customer engagement and growth. I&#39;m considering:</purpose>
 <factors>
-    1. Net Return on Investment (Comparison between the loan interest cost and the expected resale profit) 
-    2. Liquidity Management (Ability to cover short-term obligations while capital is tied up in the asset) 
-    3. Market Risk (Certainty and timing of achieving the projected 20% selling price premium) 
-    4. Transaction &amp; Holding Costs (Fees, taxes, insurance, and potential depreciation during holding period) 
-    5. Opportunity Cost (Potential returns from alternative investments or use of capital) 
-    6. Bank Loan Terms &amp; Repayment Flexibility (Early repayment penalties, collateral requirements, default risk) 
+    1. **Time to Market &amp; Agility**  
+       Ability to deploy new features and campaigns rapidly without multi-quarter development cycles.  
+    2. **Total Cost of Ownership**  
+       Up-front development or licensing fees, ongoing maintenance, hosting, and upgrade costs over a 5-year horizon.  
+    3. **Customization &amp; Flexibility**  
+       Degree to which the platform can be tailored to unique workflows (e.g., loyalty programs, in-store kiosks) and integrate proprietary modules.  
+    4. **Integration &amp; Data Migration**  
+       Effort required to migrate legacy customer, order, and interaction data, plus connect to ERP, marketing automation, and e-mail systems.  
+    5. **Scalability &amp; Performance**  
+       Ability to handle traffic spikes (e.g., seasonal promotions) and support real-time personalization without downtime.  
+    6. **Vendor &amp; Security Risk**  
+       Exposure to vendor lock-in, data governance controls, compliance with PCI DSS/GDPR, and availability of enterprise-grade SLAs and support.
+  
 </factors>
-<models>
+<board-models>
     <model name="gpt-4o" />
-    <model name="claude-3-5-sonnet-20240620" ceo="true" />
-</models>
+    <model name="o4-mini:high" />
+    <model name="claude-3-7-sonnet-20250219" />
+</board-models>
+<ceo-model name="o3:high" />
 <decision-resources>
-Ferrari F80 Base Price: $1,200,000
-Bank Loan Terms: 3% APR, 5-year term, 20% down payment
-Current Liquidity: $350,000 liquid assets
-Monthly Income: $45,000 after tax
-Monthly Expenses: $25,000 (excluding potential car payment)
-Expected Holding Period: 2 years
-Projected Resale Value: 20% premium over purchase price
-Insurance Cost: $2,500/month
-Maintenance: $15,000/year
-Historical Data: Limited edition Ferrari models have appreciated 15-25% over similar timeframes in the past
-Market Analysis: Strong demand for limited production supercars continues despite economic uncertainties
+    1. **IT Capabilities &amp; Cost Assessment (Internal Report)**  
+       Detailed analysis of existing CRM customizations, team skill-sets, estimated development timeline, and 5-year cost projections for an in-house rebuild.  
+    2. **Gartner 2025 Magic Quadrant: CRM Customer Engagement Center**  
+       Comparative vendor evaluation on feature completeness, customer satisfaction, market momentum, and total cost benchmarks for leading SaaS CRM platforms.
 </decision-resources>
 </root>

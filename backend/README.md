@@ -98,21 +98,26 @@ The backend accepts XML input with the following structure:
     2. Factor 2
     ...
 </factors>
-<models>
+<board-models>
     <model name="o4-mini:high" />
-    <model name="claude-3-7-sonnet:4k" ceo="true" />
-</models>
+    <model name="gpt-4o" />
+    <!-- up to N board models -->
+</board-models>
+<ceo-model name="claude-3-7-sonnet:4k" />
 <decision-resources>
     Additional information relevant to the decision
 </decision-resources>
 ```
 
+### XML Elements
+
 - The `purpose` element contains the main question or decision to evaluate
 - The `factors` element lists key considerations
-- The `models` element specifies which models to use as board members
-  - Optionally mark one model as CEO with `ceo="true"`
-  - OpenAI reasoning models (o3, o4-mini, etc.) can include reasoning effort with `:low`, `:medium`, or `:high` suffix
-  - Anthropic claude-3-7-sonnet-20250219 model can include thinking budget with `:1k`, `:4k`, etc. suffix
+- Model specification:
+  - `<board-models>`: List of models to use for independent analysis
+  - `<ceo-model>`: Single model to use for final decision-making
+- OpenAI reasoning models (o3, o4-mini, etc.) can include reasoning effort with `:low`, `:medium`, or `:high` suffix
+- Anthropic claude-3-7-sonnet-20250219 model can include thinking budget with `:1k`, `:4k`, etc. suffix
 - The `decision-resources` element provides additional context
 
 ## API Endpoints
@@ -131,7 +136,7 @@ Example request:
 curl -X POST http://localhost:8000/decide \
   -H 'Content-Type: application/json' \
   -d '{
-    "prompt": "<purpose>Should we enter the EV market?</purpose><factors>1. Market growth\n2. Competition</factors><models><model name=\"o4-mini:high\" /><model name=\"claude-3-7-sonnet:4k\" ceo=\"true\" /></models><decision-resources>Industry reports show...</decision-resources>"
+    "prompt": "<purpose>Should we enter the EV market?</purpose><factors>1. Market growth\n2. Competition</factors><board-models><model name=\"o4-mini:high\" /><model name=\"gpt-4o\" /></board-models><ceo-model name=\"claude-3-7-sonnet:4k\" /><decision-resources>Industry reports show...</decision-resources>"
   }'
 ```
 

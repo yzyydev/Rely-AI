@@ -9,13 +9,15 @@ logger = logging.getLogger(__name__)
 
 def parse_xml_input(xml_content: str) -> Tuple[str, str, str, List[str], Optional[str]]:
     """
-    Parse XML input to extract purpose, factors, resources, models, and CEO model.
+    Parse XML input to extract purpose, factors, resources, board models, and CEO model.
+    
+    XML format uses <board-models> and <ceo-model> elements.
     
     Args:
         xml_content: XML string containing decision request
         
     Returns:
-        Tuple of (purpose, factors, resources, models, ceo_model)
+        Tuple of (purpose, factors, resources, board_models, ceo_model)
         
     Raises:
         ET.ParseError: If XML is malformed
@@ -44,28 +46,34 @@ def parse_xml_input(xml_content: str) -> Tuple[str, str, str, List[str], Optiona
         factors_elem = elements.find('factors')
         factors = factors_elem.text.strip() if factors_elem is not None and factors_elem.text else ""
         
-        # Extract models
-        models = []
-        ceo_model = None
-        models_elem = elements.find('models')
-        if models_elem is not None:
-            for model_elem in models_elem.findall('model'):
-                model_name = model_elem.get('name')
-                is_ceo = model_elem.get('ceo')
-                
-                if model_name:
-                    models.append(model_name)
-                    if is_ceo and is_ceo.lower() == 'true':
-                        ceo_model = model_name
-        
         # Extract decision resources
         resources_elem = elements.find('decision-resources')
         resources = resources_elem.text.strip() if resources_elem is not None and resources_elem.text else ""
         
-        if not models:
-            raise ValueError("No models specified in the request")
+        # Parse board models and CEO model
+        board_models = []
+        ceo_model = None
+        
+        # Parse board models
+        board_models_elem = elements.find('board-models')
+        if board_models_elem is not None:
+            for model_elem in board_models_elem.findall('model'):
+                model_name = model_elem.get('name')
+                if model_name:
+                    board_models.append(model_name)
+        else:
+            raise ValueError("Missing required <board-models> element in XML")
+        
+        # Parse CEO model
+        ceo_model_elem = elements.find('ceo-model')
+        if ceo_model_elem is not None:
+            ceo_model = ceo_model_elem.get('name')
+        
+        # Validate we have at least one model
+        if not board_models:
+            raise ValueError("No board models specified in the request")
             
-        return purpose, factors, resources, models, ceo_model
+        return purpose, factors, resources, board_models, ceo_model
         
     except ET.ParseError as e:
         logger.error(f"XML parsing error: {str(e)}")
