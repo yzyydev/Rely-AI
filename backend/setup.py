@@ -12,7 +12,7 @@ setup(
         "python-dotenv>=1.0.0",
         "openai>=1.0.0",
         "anthropic>=0.5.0",
-        "google-generativeai>=0.8.0",
+        "google-genai>=1.0.0",
     ],
     python_requires=">=3.9",
 )
