@@ -21,6 +21,16 @@ const CEO_MODEL_OPTIONS = [
   'claude-3-5-sonnet-20240620'
 ]
 
+// Helper function to escape XML entities
+const escapeXml = (text: string): string => {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;')
+}
+
 export default function Home() {
   const [purpose, setPurpose] = useState('')
   const [factors, setFactors] = useState<string[]>([''])
@@ -45,10 +55,10 @@ export default function Home() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     const boardXML = boardModels
-      .map((m) => `<model name="${m}" />`)
+      .map((m) => `<model name="${escapeXml(m)}" />`)
       .join('')
-    const factorsText = factors.filter(Boolean).join('\n')
-    const xml = `<root><purpose>${purpose}</purpose><factors>${factorsText}</factors><board-models>${boardXML}</board-models><ceo-model name="${ceoModel}" /><decision-resources>${decisionResources}</decision-resources></root>`
+    const factorsText = factors.filter(Boolean).map(escapeXml).join('\n')
+    const xml = `<root><purpose>${escapeXml(purpose)}</purpose><factors>${escapeXml(factorsText)}</factors><board-models>${boardXML}</board-models><ceo-model name="${escapeXml(ceoModel)}" /><decision-resources>${escapeXml(decisionResources)}</decision-resources></root>`
     setLoading(true)
     try {
       const res = await fetch('http://localhost:8000/decide', {
