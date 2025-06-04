@@ -16,6 +16,7 @@ const BOARD_MODEL_OPTIONS = [
 ]
 
 const CEO_MODEL_OPTIONS = [
+  'gpt-4o',
   'gemini-1.5-pro',
   'claude-3-5-sonnet-20240620'
 ]
