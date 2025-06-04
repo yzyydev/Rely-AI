@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Select } from '@/components/ui/select'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 const BOARD_MODEL_OPTIONS = [
   'gpt-4o',
@@ -86,111 +87,140 @@ export default function Home() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
-      <div className={`flex w-full max-w-5xl transition-all duration-700 ${showOutput ? 'space-x-4' : ''}`}> 
-        <div className={`space-y-6 ${showOutput ? 'w-1/3' : 'w-full'} transition-all duration-700`}>
-          <h1 className="text-2xl font-bold text-center">Rely AI Report Generator</h1>
-          <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="purpose">Purpose</Label>
-            <Textarea
-              id="purpose"
-              value={purpose}
-              onChange={(e) => setPurpose(e.target.value)}
-              placeholder="Describe the decision you need help with"
-            />
+    <div className="min-h-screen bg-background p-4">
+      <div className="container mx-auto max-w-7xl">
+        <div className={`flex transition-all duration-700 ${showOutput ? 'space-x-6' : 'justify-center'}`}> 
+          <div className={`${showOutput ? 'w-1/3' : 'w-full max-w-2xl'} transition-all duration-700`}>
+            <Card>
+              <CardHeader>
+                <CardTitle>Rely AI Report Generator</CardTitle>
+                <CardDescription>
+                  Generate AI-powered decision reports by providing your context and factors
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="purpose">Purpose</Label>
+                    <Textarea
+                      id="purpose"
+                      value={purpose}
+                      onChange={(e) => setPurpose(e.target.value)}
+                      placeholder="Describe the decision you need help with"
+                      rows={3}
+                    />
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <Label>Factors to Consider</Label>
+                    {factors.map((factor, i) => (
+                      <Input
+                        key={i}
+                        value={factor}
+                        onChange={(e) => updateFactor(i, e.target.value)}
+                        placeholder={`Factor ${i + 1}`}
+                      />
+                    ))}
+                    <Button type="button" onClick={addFactor} variant="outline" size="sm">
+                      + Add Factor
+                    </Button>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <Label>Board Models</Label>
+                    {boardModels.map((model, i) => (
+                      <Select
+                        key={i}
+                        value={model}
+                        onChange={(e) => updateBoardModel(i, e.target.value)}
+                      >
+                        {BOARD_MODEL_OPTIONS.map((opt) => (
+                          <option key={opt} value={opt}>
+                            {opt}
+                          </option>
+                        ))}
+                      </Select>
+                    ))}
+                    <Button type="button" onClick={addBoardModel} variant="outline" size="sm">
+                      + Add Model
+                    </Button>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label>CEO Model</Label>
+                    <Select value={ceoModel} onChange={(e) => setCeoModel(e.target.value)}>
+                      {CEO_MODEL_OPTIONS.map((opt) => (
+                        <option key={opt} value={opt}>
+                          {opt}
+                        </option>
+                      ))}
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="resources">Decision Resources</Label>
+                    <Textarea
+                      id="resources"
+                      value={decisionResources}
+                      onChange={(e) => setDecisionResources(e.target.value)}
+                      placeholder="Links, documents, or additional context the models should consider"
+                      rows={3}
+                    />
+                  </div>
+                  
+                  <Button type="submit" disabled={loading} className="w-full" size="lg">
+                    {loading ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <svg
+                          className="h-4 w-4 animate-spin"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          />
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                          />
+                        </svg>
+                        Generating Report...
+                      </span>
+                    ) : (
+                      'Generate Decision Report'
+                    )}
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
           </div>
-          <div className="space-y-2">
-            <Label>Factors</Label>
-            {factors.map((factor, i) => (
-              <Input
-                key={i}
-                value={factor}
-                onChange={(e) => updateFactor(i, e.target.value)}
-                placeholder={`Factor ${i + 1}`}
-                className="mb-2"
-              />
-            ))}
-            <Button type="button" onClick={addFactor}>Add Factor</Button>
-          </div>
-          <div className="space-y-2">
-            <Label>Board Models</Label>
-            {boardModels.map((model, i) => (
-              <Select
-                key={i}
-                value={model}
-                onChange={(e) => updateBoardModel(i, e.target.value)}
-                className="mb-2"
-              >
-                {BOARD_MODEL_OPTIONS.map((opt) => (
-                  <option key={opt} value={opt}>
-                    {opt}
-                  </option>
-                ))}
-              </Select>
-            ))}
-            <Button type="button" onClick={addBoardModel}>Add Model</Button>
-          </div>
-          <div className="space-y-2">
-            <Label>CEO Model</Label>
-            <Select value={ceoModel} onChange={(e) => setCeoModel(e.target.value)}>
-              {CEO_MODEL_OPTIONS.map((opt) => (
-                <option key={opt} value={opt}>
-                  {opt}
-                </option>
-              ))}
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="resources">Decision Resources</Label>
-            <Textarea
-              id="resources"
-              value={decisionResources}
-              onChange={(e) => setDecisionResources(e.target.value)}
-              placeholder="Links or notes the models should consider"
-            />
-          </div>
-          <Button type="submit" disabled={loading} className="w-full">
-            {loading ? (
-              <span className="flex items-center justify-center gap-2">
-                <svg
-                  className="h-4 w-4 animate-spin"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                  />
-                </svg>
-                Generating...
-              </span>
-            ) : (
-              'Generate'
-            )}
-          </Button>
-        </form>
-      </div>
-        {showOutput && (
-          <div className="w-2/3 overflow-y-auto rounded border p-4 bg-[#f8f8f8] text-black transition-all duration-700">
-            <ReactMarkdown
-              remarkPlugins={[remarkGfm as any]}
-              className="prose max-w-none text-black"
-            >
-              {markdown}
-            </ReactMarkdown>
-          </div>
-        )}
+          
+          {showOutput && (
+            <div className="w-2/3 transition-all duration-700">
+              <Card className="h-[calc(100vh-2rem)]">
+                <CardHeader>
+                  <CardTitle>Decision Report</CardTitle>
+                  <CardDescription>AI-generated analysis and recommendations</CardDescription>
+                </CardHeader>
+                <CardContent className="h-full overflow-y-auto">
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm as any]}
+                    className="prose prose-slate max-w-none"
+                  >
+                    {markdown}
+                  </ReactMarkdown>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
