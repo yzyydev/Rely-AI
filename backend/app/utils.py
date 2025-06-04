@@ -228,7 +228,7 @@ def sanitize_xml(xml_content: str) -> str:
     
     return sanitized
 
-def parse_model_name(model_name: str) -> Tuple[str, Optional[str], Optional[str]]:
+def parse_model_name(model_name: str) -> Tuple[Optional[str], str, Optional[str]]:
     """
     Parse a model name to extract provider, base name, and any suffix
     
