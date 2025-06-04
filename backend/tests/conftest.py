@@ -1,7 +1,14 @@
+import os
+
+# Ensure required API keys are set before importing application modules
+# that instantiate provider clients at import time.
+os.environ.setdefault("OPENAI_API_KEY", "test-key")
+os.environ.setdefault("ANTHROPIC_API_KEY", "test-key")
+os.environ.setdefault("GEMINI_API_KEY", "test-key")
+
 import pytest
 from fastapi.testclient import TestClient
 from app.main import app
-import os
 import httpx
 from unittest.mock import patch, AsyncMock
 
