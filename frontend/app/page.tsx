@@ -1,5 +1,7 @@
 'use client'
 import { useState } from 'react'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
@@ -26,6 +28,8 @@ export default function Home() {
   const [decisionResources, setDecisionResources] = useState('')
   const [response, setResponse] = useState<any | null>(null)
   const [loading, setLoading] = useState(false)
+  const [markdown, setMarkdown] = useState('')
+  const [showOutput, setShowOutput] = useState(false)
 
   const addFactor = () => setFactors([...factors, ''])
   const updateFactor = (index: number, value: string) => {
@@ -53,6 +57,16 @@ export default function Home() {
       })
       const data = await res.json()
       setResponse(data)
+      if (data.ceo_decision_path) {
+        try {
+          const mdRes = await fetch(`http://localhost:8000${data.ceo_decision_path}`)
+          const text = await mdRes.text()
+          setMarkdown(text)
+          setShowOutput(true)
+        } catch {
+          setMarkdown('Failed to load markdown')
+        }
+      }
     } catch (err) {
       setResponse({ error: 'Failed to submit request' })
     } finally {
@@ -62,9 +76,10 @@ export default function Home() {
 
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
-      <div className="w-full max-w-xl space-y-6">
-        <h1 className="text-2xl font-bold text-center">Rely AI Report Generator</h1>
-        <form onSubmit={handleSubmit} className="space-y-4">
+      <div className={`flex w-full max-w-5xl transition-all duration-700 ${showOutput ? 'space-x-4' : ''}`}> 
+        <div className={`space-y-6 ${showOutput ? 'w-1/3' : 'w-full'} transition-all duration-700`}>
+          <h1 className="text-2xl font-bold text-center">Rely AI Report Generator</h1>
+          <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="purpose">Purpose</Label>
             <Textarea
@@ -125,13 +140,42 @@ export default function Home() {
             />
           </div>
           <Button type="submit" disabled={loading} className="w-full">
-            {loading ? 'Generating...' : 'Generate'}
+            {loading ? (
+              <span className="flex items-center justify-center gap-2">
+                <svg
+                  className="h-4 w-4 animate-spin"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                  />
+                </svg>
+                Generating...
+              </span>
+            ) : (
+              'Generate'
+            )}
           </Button>
         </form>
-        {response && (
-          <pre className="whitespace-pre-wrap text-sm bg-gray-100 p-4 rounded">
-            {JSON.stringify(response, null, 2)}
-          </pre>
+      </div>
+        {showOutput && (
+          <div className="w-2/3 overflow-y-auto rounded border p-4 bg-white transition-all duration-700">
+            <ReactMarkdown remarkPlugins={[remarkGfm as any]} className="prose max-w-none">
+              {markdown}
+            </ReactMarkdown>
+          </div>
         )}
       </div>
     </div>
