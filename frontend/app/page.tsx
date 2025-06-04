@@ -210,12 +210,13 @@ export default function Home() {
                   <CardDescription>AI-generated analysis and recommendations</CardDescription>
                 </CardHeader>
                 <CardContent className="h-full overflow-y-auto">
-                  <ReactMarkdown
-                    remarkPlugins={[remarkGfm as any]}
-                    className="prose prose-slate max-w-none"
-                  >
-                    {markdown}
-                  </ReactMarkdown>
+                  <div className="prose prose-slate max-w-none dark:prose-invert">
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm as any]}
+                    >
+                      {markdown}
+                    </ReactMarkdown>
+                  </div>
                 </CardContent>
               </Card>
             </div>
