@@ -61,6 +61,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Serve generated markdown and prompt files
+app.mount(
+    "/output",
+    StaticFiles(directory=settings.output_dir),
+    name="output",
+)
+
 # Exception handler
 @app.exception_handler(Exception)
 async def generic_exception_handler(request: Request, exc: Exception):
