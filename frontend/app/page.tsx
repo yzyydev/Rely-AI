@@ -171,8 +171,11 @@ export default function Home() {
         </form>
       </div>
         {showOutput && (
-          <div className="w-2/3 overflow-y-auto rounded border p-4 bg-white transition-all duration-700">
-            <ReactMarkdown remarkPlugins={[remarkGfm as any]} className="prose max-w-none">
+          <div className="w-2/3 overflow-y-auto rounded border p-4 bg-[#f8f8f8] text-black transition-all duration-700">
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm as any]}
+              className="prose max-w-none text-black"
+            >
               {markdown}
             </ReactMarkdown>
           </div>
